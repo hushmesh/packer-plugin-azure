@@ -19,6 +19,7 @@ import (
 	"net"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -131,6 +132,24 @@ type SharedImageGalleryDestination struct {
 
 	// The ConfidentialVM Image Encryption Type for the Shared Image Gallery Destination. This can be either "EncryptedVMGuestStateOnlyWithPmk", "EncryptedWithPmk", or "EncryptedWithCmk" (encrypted with DES). This option is used to publish a VM image to a Shared Image Gallery as a confidential VM image.
 	SigDestinationConfidentialVMImageEncryptionType string `mapstructure:"confidential_vm_image_encryption_type" required:"false"`
+
+	// A list of UEFI signature template names.
+	SigDestinationUEFISignatureTemplateNames []string `mapstructure:"uefi_signature_template_names" required:"false"`
+
+	// Additional platform key UEFI signatures. PEM encoded x509 certificates.
+	SigDestinationUEFIAdditionalSignaturesPk []string `mapstructure:"uefi_additional_signatures_pk" required:"false"`
+
+	// Additional key exchange key UEFI signatures. PEM encoded x509 certificates.
+	SigDestinationUEFIAdditionalSignaturesKek []string `mapstructure:"uefi_additional_signatures_kek" required:"false"`
+
+	// Additional database UEFI signatures. PEM encoded x509 certificates.
+	SigDestinationUEFIAdditionalSignaturesDb []string `mapstructure:"uefi_additional_signatures_db" required:"false"`
+
+	// Additional database revocation UEFI signatures. PEM encoded x509 certificates.
+	SigDestinationUEFIAdditionalSignaturesDbxX509 []string `mapstructure:"uefi_additional_signatures_dbx_x509" required:"false"`
+
+	// Additional database revocation UEFI signatures. Base64 encoded SHA256 hashes.
+	SigDestinationUEFIAdditionalSignaturesDbxSHA256 []string `mapstructure:"uefi_additional_signatures_dbx_sha256" required:"false"`
 }
 
 func (d SharedImageGalleryDestination) ValidateShallowReplicationRegion() error {
@@ -1414,6 +1433,33 @@ func assertRequiredParametersSet(c *Config, errs *packersdk.MultiError) {
 				}
 			}
 
+		}
+		if c.SecureBootEnabled {
+			for _, name := range c.SharedGalleryDestination.SigDestinationUEFISignatureTemplateNames {
+				allowed := galleryimageversions.PossibleValuesForUefiSignatureTemplateName()
+				if !slices.Contains(allowed, name) {
+					errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("UEFI signature template name %q is not valid, allowed values are: %v", name, allowed))
+				}
+			}
+		} else {
+			if len(c.SharedGalleryDestination.SigDestinationUEFISignatureTemplateNames) != 0 {
+				errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("Secure boot must be enabled when using UEFI signature template names"))
+			}
+			if len(c.SharedGalleryDestination.SigDestinationUEFIAdditionalSignaturesPk) != 0 {
+				errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("Secure boot must be enabled when using UEFI pk additional signatures"))
+			}
+			if len(c.SharedGalleryDestination.SigDestinationUEFIAdditionalSignaturesKek) != 0 {
+				errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("Secure boot must be enabled when using UEFI kek additional signatures"))
+			}
+			if len(c.SharedGalleryDestination.SigDestinationUEFIAdditionalSignaturesDb) != 0 {
+				errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("Secure boot must be enabled when using UEFI db additional signatures"))
+			}
+			if len(c.SharedGalleryDestination.SigDestinationUEFIAdditionalSignaturesDbxX509) != 0 {
+				errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("Secure boot must be enabled when using UEFI dbx X509 additional signatures"))
+			}
+			if len(c.SharedGalleryDestination.SigDestinationUEFIAdditionalSignaturesDbxSHA256) != 0 {
+				errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("Secure boot must be enabled when using UEFI dbx SHA256 additional signatures"))
+			}
 		}
 	}
 	if c.SharedGalleryTimeout == 0 {

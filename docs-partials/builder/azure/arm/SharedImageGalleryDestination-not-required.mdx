@@ -30,4 +30,16 @@
 
 - `confidential_vm_image_encryption_type` (string) - The ConfidentialVM Image Encryption Type for the Shared Image Gallery Destination. This can be either "EncryptedVMGuestStateOnlyWithPmk", "EncryptedWithPmk", or "EncryptedWithCmk" (encrypted with DES). This option is used to publish a VM image to a Shared Image Gallery as a confidential VM image.
 
+- `uefi_signature_template_names` ([]string) - A list of UEFI signature template names.
+
+- `uefi_additional_signatures_pk` ([]string) - Additional platform key UEFI signatures. PEM encoded x509 certificates.
+
+- `uefi_additional_signatures_kek` ([]string) - Additional key exchange key UEFI signatures. PEM encoded x509 certificates.
+
+- `uefi_additional_signatures_db` ([]string) - Additional database UEFI signatures. PEM encoded x509 certificates.
+
+- `uefi_additional_signatures_dbx_x509` ([]string) - Additional database revocation UEFI signatures. PEM encoded x509 certificates.
+
+- `uefi_additional_signatures_dbx_sha256` ([]string) - Additional database revocation UEFI signatures. Base64 encoded SHA256 hashes.
+
 <!-- End of code generated from the comments of the SharedImageGalleryDestination struct in builder/azure/arm/config.go; -->

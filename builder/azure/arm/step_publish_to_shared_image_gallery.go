@@ -170,6 +170,73 @@ func buildAzureImageTargetRegionsWithEncryption(diskEncryptionSetId string, conf
 	return e
 }
 
+func buildSigSecurityProfile(sig SharedImageGalleryDestination) *galleryimageversions.ImageVersionSecurityProfile {
+	templateNames := sig.SigDestinationUEFISignatureTemplateNames
+	pk := sig.SigDestinationUEFIAdditionalSignaturesPk
+	kek := sig.SigDestinationUEFIAdditionalSignaturesKek
+	db := sig.SigDestinationUEFIAdditionalSignaturesDb
+	dbxX509 := sig.SigDestinationUEFIAdditionalSignaturesDbxX509
+	dbxSHA256 := sig.SigDestinationUEFIAdditionalSignaturesDbxSHA256
+
+	if len(templateNames) == 0 && len(pk) == 0 && len(kek) == 0 && len(db) == 0 && len(dbxX509) == 0 && len(dbxSHA256) == 0 {
+		return nil
+	}
+	uefiSettings := &galleryimageversions.GalleryImageVersionUefiSettings{}
+	if len(templateNames) > 0 {
+		names := []galleryimageversions.UefiSignatureTemplateName{}
+		for _, templateName := range templateNames {
+			names = append(names, galleryimageversions.UefiSignatureTemplateName(templateName))
+		}
+		uefiSettings.SignatureTemplateNames = &names
+	}
+	if len(pk) != 0 || len(kek) != 0 || len(db) != 0 || len(dbxX509) != 0 || len(dbxSHA256) != 0 {
+		uefiSettings.AdditionalSignatures = &galleryimageversions.UefiKeySignatures{}
+	}
+	x509 := galleryimageversions.UefiKeyTypeXFiveZeroNine
+	sha256 := galleryimageversions.UefiKeyTypeShaTwoFiveSix
+	if len(pk) != 0 {
+		uefiSettings.AdditionalSignatures.Pk = &galleryimageversions.UefiKey{
+			Type:  &x509,
+			Value: &pk,
+		}
+	}
+	if len(kek) != 0 {
+		uefiSettings.AdditionalSignatures.Kek = &[]galleryimageversions.UefiKey{
+			{
+				Type:  &x509,
+				Value: &kek,
+			},
+		}
+	}
+	if len(db) != 0 {
+		uefiSettings.AdditionalSignatures.Db = &[]galleryimageversions.UefiKey{
+			{
+				Type:  &x509,
+				Value: &db,
+			},
+		}
+	}
+	if len(dbxX509) != 0 {
+		uefiSettings.AdditionalSignatures.Dbx = &[]galleryimageversions.UefiKey{
+			{
+				Type:  &x509,
+				Value: &dbxX509,
+			},
+		}
+	}
+	if len(dbxSHA256) != 0 {
+		uefiSettings.AdditionalSignatures.Dbx = &[]galleryimageversions.UefiKey{
+			{
+				Type:  &sha256,
+				Value: &dbxSHA256,
+			},
+		}
+	}
+	return &galleryimageversions.ImageVersionSecurityProfile{
+		UefiSettings: uefiSettings,
+	}
+}
+
 func (s *StepPublishToSharedImageGallery) publishToSig(ctx context.Context, args PublishArgs) (string, error) {
 	imageVersionRegions := buildAzureImageTargetRegions(args.SharedImageGallery)
 	storageAccountType, err := getSigDestinationStorageAccountType(args.SharedImageGallery.SigDestinationStorageAccountType)
@@ -177,6 +244,7 @@ func (s *StepPublishToSharedImageGallery) publishToSig(ctx context.Context, args
 		s.error(err)
 		return "", err
 	}
+	securityProfile := buildSigSecurityProfile(args.SharedImageGallery)
 
 	galleryImageVersion := galleryimageversions.GalleryImageVersion{
 		Location: args.Location,
@@ -193,6 +261,7 @@ func (s *StepPublishToSharedImageGallery) publishToSig(ctx context.Context, args
 				ReplicationMode:    &args.ReplicationMode,
 				StorageAccountType: &storageAccountType,
 			},
+			SecurityProfile: securityProfile,
 		},
 	}
 

@@ -386,6 +386,12 @@ type FlatSharedImageGalleryDestination struct {
 	SigDestinationSpecialized                       *bool              `mapstructure:"specialized" cty:"specialized" hcl:"specialized"`
 	SigDestinationUseShallowReplicationMode         *bool              `mapstructure:"use_shallow_replication" required:"false" cty:"use_shallow_replication" hcl:"use_shallow_replication"`
 	SigDestinationConfidentialVMImageEncryptionType *string            `mapstructure:"confidential_vm_image_encryption_type" required:"false" cty:"confidential_vm_image_encryption_type" hcl:"confidential_vm_image_encryption_type"`
+	SigDestinationUEFISignatureTemplateNames        []string           `mapstructure:"uefi_signature_template_names" required:"false" cty:"uefi_signature_template_names" hcl:"uefi_signature_template_names"`
+	SigDestinationUEFIAdditionalSignaturesPk        []string           `mapstructure:"uefi_additional_signatures_pk" required:"false" cty:"uefi_additional_signatures_pk" hcl:"uefi_additional_signatures_pk"`
+	SigDestinationUEFIAdditionalSignaturesKek       []string           `mapstructure:"uefi_additional_signatures_kek" required:"false" cty:"uefi_additional_signatures_kek" hcl:"uefi_additional_signatures_kek"`
+	SigDestinationUEFIAdditionalSignaturesDb        []string           `mapstructure:"uefi_additional_signatures_db" required:"false" cty:"uefi_additional_signatures_db" hcl:"uefi_additional_signatures_db"`
+	SigDestinationUEFIAdditionalSignaturesDbxX509   []string           `mapstructure:"uefi_additional_signatures_dbx_x509" required:"false" cty:"uefi_additional_signatures_dbx_x509" hcl:"uefi_additional_signatures_dbx_x509"`
+	SigDestinationUEFIAdditionalSignaturesDbxSHA256 []string           `mapstructure:"uefi_additional_signatures_dbx_sha256" required:"false" cty:"uefi_additional_signatures_dbx_sha256" hcl:"uefi_additional_signatures_dbx_sha256"`
 }
 
 // FlatMapstructure returns a new FlatSharedImageGalleryDestination.
@@ -411,6 +417,12 @@ func (*FlatSharedImageGalleryDestination) HCL2Spec() map[string]hcldec.Spec {
 		"specialized":                           &hcldec.AttrSpec{Name: "specialized", Type: cty.Bool, Required: false},
 		"use_shallow_replication":               &hcldec.AttrSpec{Name: "use_shallow_replication", Type: cty.Bool, Required: false},
 		"confidential_vm_image_encryption_type": &hcldec.AttrSpec{Name: "confidential_vm_image_encryption_type", Type: cty.String, Required: false},
+		"uefi_signature_template_names":         &hcldec.AttrSpec{Name: "uefi_signature_template_names", Type: cty.List(cty.String), Required: false},
+		"uefi_additional_signatures_pk":         &hcldec.AttrSpec{Name: "uefi_additional_signatures_pk", Type: cty.List(cty.String), Required: false},
+		"uefi_additional_signatures_kek":        &hcldec.AttrSpec{Name: "uefi_additional_signatures_kek", Type: cty.List(cty.String), Required: false},
+		"uefi_additional_signatures_db":         &hcldec.AttrSpec{Name: "uefi_additional_signatures_db", Type: cty.List(cty.String), Required: false},
+		"uefi_additional_signatures_dbx_x509":   &hcldec.AttrSpec{Name: "uefi_additional_signatures_dbx_x509", Type: cty.List(cty.String), Required: false},
+		"uefi_additional_signatures_dbx_sha256": &hcldec.AttrSpec{Name: "uefi_additional_signatures_dbx_sha256", Type: cty.List(cty.String), Required: false},
 	}
 	return s
 }
